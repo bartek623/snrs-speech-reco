@@ -4,11 +4,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Speech Recognition Widget</title>
-    <link rel="stylesheet" type="text/css" href="styles.css" />
     <link
       href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;0,700;1,100&display=swap"
       rel="stylesheet"
     />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@48,500,0,0&icon_names=arrow_upward,cancel,filter_list,first_page,last_page,sort"
+    />
+    <link rel="stylesheet" type="text/css" href="styles.css" />
   </head>
   <body>
     <header class="main-heading card mg_top--lg">
@@ -85,22 +89,130 @@
             readonly
           ></textarea>
           <div class="inputs-box">
-            <div class="select-ctrl">
-              <label for="lang-select">Select language</label>
+            <div class="select-ctrl input-ctrl">
+              <label for="lang-select">
+                <span> Select language </span>
+              </label>
               <select id="lang-select">
-                <option value="pl-PL">Polish</option>
                 <option value="en-US">English</option>
+                <option value="pl-PL">Polish</option>
                 <option value="de-DE">German</option>
               </select>
             </div>
-            <button class="speech-ctrl-btn">start</button>
+            <button class="action-btn speech-ctrl-btn">start</button>
           </div>
         </div>
       </div>
+
+      <div class="search-opts card mg_top--sm">
+        <div class="select-ctrl input-ctrl">
+          <label for="page-size-select">
+            <span>Elements per page</span>
+          </label>
+          <select id="page-size-select">
+            <option>10</option>
+            <option>20</option>
+            <option>50</option>
+          </select>
+        </div>
+        <div class="select-ctrl input-ctrl">
+          <label for="sorting-select">
+            <span class="material-symbols-rounded"> sort </span>
+            <span>Sort</span>
+          </label>
+          <div class="sort-box">
+            <select id="sorting-select" data-order="asc">
+              <option value="name">Name</option>
+              <option value="price">Price</option>
+            </select>
+            <button>
+              <span class="material-symbols-rounded"> arrow_upward </span>
+            </button>
+          </div>
+        </div>
+        <button class="icon-btn filters-btn">
+          <span class="material-symbols-rounded"> filter_list </span>
+          <span>Filters</span>
+        </button>
+      </div>
+
       <div class="search-results_container mg_top--sm">
         <div class="grid-loader hidden"><div class="loader"></div></div>
+        <div class="search-results_pagination mg_top--sm">
+          <button class="pagination-first-arrow material-symbols-rounded">
+            first_page
+          </button>
+          <button class="pagination-prev">1</button>
+          <button class="pagination-current">2</button>
+          <button class="pagination-next">3</button>
+          <button class="pagination-last-arrow material-symbols-rounded">
+            last_page
+          </button>
+        </div>
       </div>
     </main>
+
+    <div class="modal-overlay hidden">
+      <div class="filters-modal card">
+        <button class="modal-close-btn">
+          <span class="material-symbols-rounded"> cancel </span>
+        </button>
+
+        <div class="filter-ctrl input-ctrl filter-brand-ctrl">
+          <label for="brand-filter">
+            <span>Brand filter</span>
+          </label>
+          <input
+            id="brand-filter"
+            type="text"
+            placeholder="Type brand name and press enter"
+          />
+          <div class="selected-filters-container"></div>
+        </div>
+        <div class="filter-ctrl input-ctrl filter-category-ctrl">
+          <label for="category-filter">
+            <span>Category filter</span>
+          </label>
+          <input
+            id="category-filter"
+            type="text"
+            placeholder="Type category name and press enter"
+          />
+          <div class="selected-filters-container"></div>
+        </div>
+        <div class="filter-ctrl filter-price-ctrl">
+          <div class="filter-price-wrapper">
+            <div class="input-ctrl">
+              <label for="price-min-filter">
+                <span>Price min</span>
+              </label>
+              <input
+                id="price-min-filter"
+                type="number"
+                min="0"
+                value="0"
+                max="1000"
+              />
+            </div>
+            <div class="input-ctrl">
+              <label for="price-max-filter">
+                <span>Price max</span>
+              </label>
+              <input
+                id="price-max-filter"
+                type="number"
+                min="0"
+                value="1000"
+                max="1000"
+              />
+            </div>
+          </div>
+        </div>
+
+        <button class="apply-filters-btn action-btn">Apply filters</button>
+      </div>
+    </div>
+
     <script type="module" src="script.js"></script>
   </body>
 </html>
