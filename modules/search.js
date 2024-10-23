@@ -24,15 +24,30 @@ export default async function search(query = lastQuery) {
   lastQuery = query;
   searchResultsContainerEl.replaceChildren(searchLoader, paginationEl);
   searchLoader.classList.remove("hidden");
-  const URL = `https://api.synerise.com/search/v2/indices/${INDEX}/query?token=${TOKEN}&query=${query}&includeMeta=true&limit=${pagination.limit}&page=${pagination.page}&sortBy=${sorting.prop}&ordering=${sorting.order}`;
+  const URL = `https://api.synerise.com/search/v2/indices/${INDEX}/query?token=${TOKEN}`;
+  const reqBody = {
+    query,
+    includeMeta: true,
+    limit: pagination.limit,
+    page: pagination.page,
+    sortBy: sorting.prop,
+    ordering: sorting.order,
+    filters: `${filters.brandsQuery} AND ${filters.categoryQuery} AND ${filters.priceQuery}`,
+  };
 
   try {
-    const res = await fetch(URL);
+    const res = await fetch(URL, {
+      method: "POST",
+      body: JSON.stringify(reqBody),
+      headers: {
+        "Content-type": "application/json",
+      },
+    });
     if (!res.ok) throw new Error("Something went wrong");
     const data = await res.json();
     data.data.forEach((el) => {
       const cardEl = createCardEl(el);
-      searchResultsContainerEl.insertAdjacentHTML("afterbegin", cardEl);
+      paginationEl.insertAdjacentHTML("beforebegin", cardEl);
     });
     pagination.lastPage = data.meta.totalPages;
     pagination.updatePageNrs();

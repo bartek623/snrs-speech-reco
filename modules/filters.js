@@ -43,6 +43,15 @@ export const filters = {
   category: [],
   priceMin: 0,
   priceMax: 1000,
+  get brandsQuery() {
+    return `brand IN ${JSON.stringify(this.brand)}`;
+  },
+  get categoryQuery() {
+    return `category IN ${JSON.stringify(this.category)}`;
+  },
+  get priceQuery() {
+    return `price FROM ${this.priceMin} TO ${this.priceMax}`;
+  },
 };
 
 // Pagination

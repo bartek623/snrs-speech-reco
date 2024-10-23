@@ -5,6 +5,8 @@ const speechResultsAreaEl = document.querySelector(".speech-results-area");
 const speechCtrlBtn = document.querySelector(".speech-ctrl-btn");
 
 speechCtrlBtn.addEventListener("click", () => {
+  search("shoes");
+  return;
   if (speechCtrlBtn.textContent === "start") {
     recognition.start();
     speechCtrlBtn.textContent = "stop";
