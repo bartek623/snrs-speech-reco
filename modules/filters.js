@@ -1,3 +1,4 @@
+import { CATEGORY_DICT } from "../config.js";
 import search from "./search.js";
 
 const filtersBtn = document.querySelector(".filters-btn");
@@ -22,6 +23,9 @@ const priceMinInputEl = filtersModalEl.querySelector("#price-min-filter");
 const priceMaxInputEl = filtersModalEl.querySelector("#price-max-filter");
 const applyFiltersBtn = filtersModalEl.querySelector(".apply-filters-btn");
 
+const mapCategories = (categories) =>
+  categories.flatMap((category) => CATEGORY_DICT[category] ?? []);
+
 export const pagination = {
   limit: 10,
   page: 1,
@@ -38,25 +42,40 @@ export const sorting = {
   prop: "name",
 };
 
+const tempFilters = {
+  brand: [],
+  category: [],
+  priceMin: 0,
+  priceMax: 1000,
+};
+
 export const filters = {
   brand: [],
   category: [],
   priceMin: 0,
   priceMax: 1000,
   get brandsQuery() {
-    return `brand IN ${JSON.stringify(this.brand)}`;
+    return this.brand.length ? "brand IN " + JSON.stringify(this.brand) : "";
   },
   get categoryQuery() {
-    return `category IN ${JSON.stringify(this.category)}`;
+    return this.category.length
+      ? "category IN " + JSON.stringify(mapCategories(this.category))
+      : "";
   },
   get priceQuery() {
-    return `price FROM ${this.priceMin} TO ${this.priceMax}`;
+    return "price FROM " + this.priceMin + " TO " + this.priceMax;
+  },
+  get filtersQuery() {
+    return [this.brandsQuery, this.categoryQuery, this.priceQuery]
+      .filter((filter) => filter)
+      .join(" AND ");
   },
 };
 
 // Pagination
 pageSizeSelectEl.addEventListener("change", (e) => {
-  pagination.limit = e.target.value;
+  pagination.limit = +e.target.value;
+  pagination.page = 1;
   search();
 });
 
@@ -90,6 +109,7 @@ sortOrderBtn.addEventListener("click", function () {
 
 sortSelectEl.addEventListener("change", (e) => {
   sorting.prop = e.target.value;
+  pagination.page = 1;
   search();
 });
 
@@ -105,6 +125,24 @@ filtersModalOverlayEl.addEventListener("click", function (e) {
 });
 
 // Filters
+const applyAttrFilter = (filterCtrl) => {
+  const inputEl = filterCtrl.querySelector("input");
+  const selectedContainerEl = filterCtrl.querySelector(
+    ".selected-filters-container"
+  );
+
+  const propAttr = filterCtrl.dataset.attribute;
+  const propName = inputEl.value.toLowerCase().trim();
+  if (tempFilters[propAttr].includes(propName) || !propName) return;
+
+  const propItem = document.createElement("span");
+  propItem.classList.add("filter-item");
+  propItem.textContent = propName;
+  tempFilters[propAttr].push(propName);
+  selectedContainerEl.appendChild(propItem);
+  inputEl.value = "";
+};
+
 filterInputCtrlEls.forEach((filterCtrl) => {
   const selectedContainer = filterCtrl.querySelector(
     ".selected-filters-container"
@@ -112,18 +150,17 @@ filterInputCtrlEls.forEach((filterCtrl) => {
   const inputEl = filterCtrl.querySelector("input");
 
   inputEl.addEventListener("keyup", function (e) {
-    const brandName = this.value;
-    if (e.key !== "Enter" || filters.brand.includes(brandName)) return;
-
-    const brandItem = document.createElement("span");
-    brandItem.classList.add("filter-item");
-    brandItem.textContent = brandName;
-    selectedContainer.appendChild(brandItem);
-    this.value = "";
+    if (e.key !== "Enter") return;
+    applyAttrFilter(filterCtrl);
   });
 
   selectedContainer.addEventListener("click", (e) => {
     if (!e.target.matches(".filter-item")) return;
+    const propAttr = filterCtrl.dataset.attribute;
+    tempFilters[propAttr].splice(
+      tempFilters[propAttr].indexOf(e.target.textContent),
+      1
+    );
     e.target.remove();
   });
 });
@@ -132,23 +169,25 @@ priceMinInputEl.addEventListener("change", (e) => {
   if (+e.target.value > +priceMaxInputEl.value)
     e.target.value = priceMaxInputEl.value;
   priceMaxInputEl.min = e.target.value;
+  tempFilters.priceMin = e.target.value;
 });
 
 priceMaxInputEl.addEventListener("change", (e) => {
   if (+e.target.value < +priceMinInputEl.value)
     e.target.value = priceMinInputEl.value;
   priceMinInputEl.max = e.target.value;
+  tempFilters.priceMax = e.target.value;
 });
 
 applyFiltersBtn.addEventListener("click", () => {
-  filters.priceMin = priceMinInputEl.value;
-  filters.priceMax = priceMaxInputEl.value;
-  filters.brand = [...brandFilterCtrlEl.querySelectorAll(".filter-item")].map(
-    (el) => el.textContent
-  );
-  filters.category = [...catFilterCtrlEl.querySelectorAll(".filter-item")].map(
-    (el) => el.textContent
-  );
+  applyAttrFilter(brandFilterCtrlEl);
+  applyAttrFilter(catFilterCtrlEl);
+
+  filters.priceMin = tempFilters.priceMin;
+  filters.priceMax = tempFilters.priceMax;
+  filters.category = tempFilters.category;
+  filters.brand = tempFilters.brand;
+  pagination.page = 1;
 
   closeModal();
   search();
