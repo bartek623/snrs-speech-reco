@@ -4,6 +4,7 @@ import recognition from "./modules/speechRecognition.js";
 const speechResultsAreaEl = document.querySelector(".speech-results-area");
 const speechCtrlBtn = document.querySelector(".speech-ctrl-btn");
 
+search("", true);
 speechCtrlBtn.addEventListener("click", () => {
   if (speechCtrlBtn.textContent === "start") {
     recognition.start();

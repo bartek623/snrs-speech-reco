@@ -1,4 +1,9 @@
-import { pagination, sorting, filters } from "./filters.js";
+import {
+  pagination,
+  sorting,
+  filters,
+  updateAvailableFilters,
+} from "./filters.js";
 import { TOKEN, INDEX } from "../config.js";
 
 const searchResultsContainerEl = document.querySelector(
@@ -17,12 +22,13 @@ const createCardEl = (data) => `<div class="search-results_card card">
                                   </div>`;
 
 let lastQuery = "";
-export default async function search(query = lastQuery) {
-  if (query === "") return;
+export default async function search(query = lastQuery, updateFilters = false) {
   lastQuery = query;
   searchResultsContainerEl.replaceChildren(searchLoader, paginationEl);
   searchLoader.classList.remove("hidden");
-  const URL = `https://api.synerise.com/search/v2/indices/${INDEX}/query?token=${TOKEN}`;
+  const URL = `https://api.synerise.com/search/v2/indices/${INDEX}/${
+    query ? "query" : "list"
+  }?token=${TOKEN}`;
   const reqBody = {
     query,
     includeMeta: true,
@@ -31,6 +37,7 @@ export default async function search(query = lastQuery) {
     sortBy: sorting.prop,
     ordering: sorting.order,
     filters: filters.filtersQuery,
+    facets: ["brand", "category"],
   };
 
   try {
@@ -43,13 +50,18 @@ export default async function search(query = lastQuery) {
     });
     if (!res.ok) throw new Error("Something went wrong");
     const data = await res.json();
-    console.log(data);
     data.data.forEach((el) => {
       const cardEl = createCardEl(el);
       paginationEl.insertAdjacentHTML("beforebegin", cardEl);
     });
+
     pagination.lastPage = data.meta.totalPages;
     pagination.updatePageNrs();
+    if (updateFilters)
+      updateAvailableFilters(
+        Object.entries(data.extras.filteredFacets.brand),
+        Object.entries(data.extras.filteredFacets.category)
+      );
   } catch (err) {
     console.error(err);
   }

@@ -1,4 +1,3 @@
-import { CATEGORY_DICT } from "../config.js";
 import search from "./search.js";
 
 const filtersBtn = document.querySelector(".filters-btn");
@@ -18,13 +17,9 @@ const sortOrderBtn = document.querySelector(".sort-box button");
 
 const brandFilterCtrlEl = filtersModalEl.querySelector(".filter-brand-ctrl");
 const catFilterCtrlEl = filtersModalEl.querySelector(".filter-category-ctrl");
-const filterInputCtrlEls = [brandFilterCtrlEl, catFilterCtrlEl];
 const priceMinInputEl = filtersModalEl.querySelector("#price-min-filter");
 const priceMaxInputEl = filtersModalEl.querySelector("#price-max-filter");
 const applyFiltersBtn = filtersModalEl.querySelector(".apply-filters-btn");
-
-const mapCategories = (categories) =>
-  categories.flatMap((category) => CATEGORY_DICT[category] ?? []);
 
 export const pagination = {
   limit: 10,
@@ -42,13 +37,6 @@ export const sorting = {
   prop: "name",
 };
 
-const tempFilters = {
-  brand: [],
-  category: [],
-  priceMin: 0,
-  priceMax: 1000,
-};
-
 export const filters = {
   brand: [],
   category: [],
@@ -59,7 +47,7 @@ export const filters = {
   },
   get categoryQuery() {
     return this.category.length
-      ? "category IN " + JSON.stringify(mapCategories(this.category))
+      ? "category IN " + JSON.stringify(this.category)
       : "";
   },
   get priceQuery() {
@@ -125,68 +113,60 @@ filtersModalOverlayEl.addEventListener("click", function (e) {
 });
 
 // Filters
-const applyAttrFilter = (filterCtrl) => {
-  const inputEl = filterCtrl.querySelector("input");
-  const selectedContainerEl = filterCtrl.querySelector(
-    ".selected-filters-container"
-  );
+export const updateAvailableFilters = (
+  availableBrands,
+  availableCategories
+) => {
+  const brandSelectEl = brandFilterCtrlEl.querySelector("#brand-filter");
+  const categorySelectEl = catFilterCtrlEl.querySelector("#category-filter");
+  brandSelectEl.innerHTML = "";
+  categorySelectEl.innerHTML = "";
 
-  const propAttr = filterCtrl.dataset.attribute;
-  const propName = inputEl.value.toLowerCase().trim();
-  if (tempFilters[propAttr].includes(propName) || !propName) return;
+  availableBrands.forEach(([brand, available]) => {
+    const brandOptionTemplate = ` <li>
+    <input type="checkbox" id="${brand}" value="${brand}" />
+                                    <label for="${brand}">${brand}</label>
+                                    <span class="filter-available">${available}</span>
+                                    </li>`;
+    brandSelectEl.insertAdjacentHTML("beforeend", brandOptionTemplate);
+  });
 
-  const propItem = document.createElement("span");
-  propItem.classList.add("filter-item");
-  propItem.textContent = propName;
-  tempFilters[propAttr].push(propName);
-  selectedContainerEl.appendChild(propItem);
-  inputEl.value = "";
+  availableCategories.forEach(([category, available]) => {
+    const categories = category.split(">");
+    const categoryName =
+      categories.length > 2
+        ? categories.slice(2).join(" > ")
+        : categories.join(" > ");
+
+    const categoryOptionTemplate = `<li>
+                                      <input type="checkbox" id="${category}" value="${category}" />
+                                      <label for="${category}">${categoryName}</label>
+                                      <span class="filter-available">${available}</span>
+                                    </li>`;
+    categorySelectEl.insertAdjacentHTML("beforeend", categoryOptionTemplate);
+  });
 };
-
-filterInputCtrlEls.forEach((filterCtrl) => {
-  const selectedContainer = filterCtrl.querySelector(
-    ".selected-filters-container"
-  );
-  const inputEl = filterCtrl.querySelector("input");
-
-  inputEl.addEventListener("keyup", function (e) {
-    if (e.key !== "Enter") return;
-    applyAttrFilter(filterCtrl);
-  });
-
-  selectedContainer.addEventListener("click", (e) => {
-    if (!e.target.matches(".filter-item")) return;
-    const propAttr = filterCtrl.dataset.attribute;
-    tempFilters[propAttr].splice(
-      tempFilters[propAttr].indexOf(e.target.textContent),
-      1
-    );
-    e.target.remove();
-  });
-});
 
 priceMinInputEl.addEventListener("change", (e) => {
   if (+e.target.value > +priceMaxInputEl.value)
     e.target.value = priceMaxInputEl.value;
   priceMaxInputEl.min = e.target.value;
-  tempFilters.priceMin = e.target.value;
 });
 
 priceMaxInputEl.addEventListener("change", (e) => {
   if (+e.target.value < +priceMinInputEl.value)
     e.target.value = priceMinInputEl.value;
   priceMinInputEl.max = e.target.value;
-  tempFilters.priceMax = e.target.value;
 });
 
-applyFiltersBtn.addEventListener("click", () => {
-  applyAttrFilter(brandFilterCtrlEl);
-  applyAttrFilter(catFilterCtrlEl);
+const getSelectedFilters = (filterCtrl) =>
+  [...filterCtrl.querySelectorAll("input:checked")].map((el) => el.value);
 
-  filters.priceMin = tempFilters.priceMin;
-  filters.priceMax = tempFilters.priceMax;
-  filters.category = tempFilters.category;
-  filters.brand = tempFilters.brand;
+applyFiltersBtn.addEventListener("click", () => {
+  filters.priceMin = priceMinInputEl.value;
+  filters.priceMax = priceMaxInputEl.value;
+  filters.category = getSelectedFilters(catFilterCtrlEl);
+  filters.brand = getSelectedFilters(brandFilterCtrlEl);
   pagination.page = 1;
 
   closeModal();
