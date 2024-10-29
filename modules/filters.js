@@ -1,4 +1,5 @@
 import search from "./search.js";
+import { getSelectedFilters } from "./utils.js";
 
 const filtersBtn = document.querySelector(".filters-btn");
 const filtersModalOverlayEl = document.querySelector(".modal-overlay");
@@ -123,27 +124,51 @@ export const updateAvailableFilters = (
   categorySelectEl.innerHTML = "";
 
   availableBrands.forEach(([brand, available]) => {
-    const brandOptionTemplate = ` <li>
-    <input type="checkbox" id="${brand}" value="${brand}" />
-                                    <label for="${brand}">${brand}</label>
-                                    <span class="filter-available">${available}</span>
-                                    </li>`;
+    const brandOptionTemplate = `
+    <li>
+      <div>
+        <input type="checkbox" id="${brand}" value="${brand}" />
+        <label for="${brand}">${brand}</label>
+        <span class="filter-available">${available}</span>
+      </div>
+    </li>`;
     brandSelectEl.insertAdjacentHTML("beforeend", brandOptionTemplate);
   });
 
-  availableCategories.forEach(([category, available]) => {
-    const categories = category.split(">");
-    const categoryName =
-      categories.length > 2
-        ? categories.slice(2).join(" > ")
-        : categories.join(" > ");
+  let currentParent = categorySelectEl;
+  availableCategories.sort().forEach(([category, available]) => {
+    const subcategories = category.split(">");
+    const categoryName = subcategories.at(-1);
+    const parentCategory = subcategories.at(-2);
 
-    const categoryOptionTemplate = `<li>
-                                      <input type="checkbox" id="${category}" value="${category}" />
-                                      <label for="${category}">${categoryName}</label>
-                                      <span class="filter-available">${available}</span>
-                                    </li>`;
-    categorySelectEl.insertAdjacentHTML("beforeend", categoryOptionTemplate);
+    currentParent =
+      currentParent.closest(`ul[data-category="${parentCategory}"]`) ||
+      currentParent;
+
+    currentParent.parentNode
+      .querySelector("button")
+      ?.classList.remove("hidden");
+
+    const listItem = document.createElement("li");
+    listItem.classList.add("collapsed");
+    const childList = document.createElement("ul");
+    childList.dataset.category = categoryName;
+    const categoryOptionTemplate = `
+    <div>
+      <input type="checkbox" id="${category}" value="${category}" />
+      <label for="${category}">${categoryName}</label>
+      <span class="filter-available">${available}</span>
+      <button class="hidden"><span class="material-symbols-rounded icon"> keyboard_arrow_up </span></button>
+    </div>`;
+    listItem.insertAdjacentHTML("beforeend", categoryOptionTemplate);
+    listItem.insertAdjacentElement("beforeend", childList);
+
+    listItem.querySelector("button").addEventListener("click", () => {
+      listItem.classList.toggle("collapsed");
+    });
+
+    currentParent.insertAdjacentElement("beforeend", listItem);
+    currentParent = childList;
   });
 };
 
@@ -151,16 +176,17 @@ priceMinInputEl.addEventListener("change", (e) => {
   if (+e.target.value > +priceMaxInputEl.value)
     e.target.value = priceMaxInputEl.value;
   priceMaxInputEl.min = e.target.value;
+  filters.priceMin = e.target.value;
+  search(undefined, false, true);
 });
 
 priceMaxInputEl.addEventListener("change", (e) => {
   if (+e.target.value < +priceMinInputEl.value)
     e.target.value = priceMinInputEl.value;
   priceMinInputEl.max = e.target.value;
+  filters.priceMax = e.target.value;
+  search(undefined, false, true);
 });
-
-const getSelectedFilters = (filterCtrl) =>
-  [...filterCtrl.querySelectorAll("input:checked")].map((el) => el.value);
 
 applyFiltersBtn.addEventListener("click", () => {
   filters.priceMin = priceMinInputEl.value;

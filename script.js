@@ -4,8 +4,13 @@ import recognition from "./modules/speechRecognition.js";
 const speechResultsAreaEl = document.querySelector(".speech-results-area");
 const speechCtrlBtn = document.querySelector(".speech-ctrl-btn");
 
-search("", true);
+search("", false, true);
 speechCtrlBtn.addEventListener("click", () => {
+  if (speechResultsAreaEl.value) {
+    search(speechResultsAreaEl.value, true, true);
+    return;
+  }
+
   if (speechCtrlBtn.textContent === "start") {
     recognition.start();
     speechCtrlBtn.textContent = "stop";
@@ -20,5 +25,5 @@ recognition.addEventListener("result", async (e) => {
 
   speechCtrlBtn.textContent = "start";
   speechResultsAreaEl.value = results;
-  search(results);
+  search(results, true, true);
 });
