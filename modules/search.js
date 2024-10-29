@@ -5,6 +5,7 @@ import {
   updateAvailableFilters,
 } from "./filters.js";
 import { TOKEN, INDEX } from "../config.js";
+import { showSearchResults } from "./utils.js";
 
 const searchResultsContainerEl = document.querySelector(
   ".search-results_container"
@@ -12,19 +13,16 @@ const searchResultsContainerEl = document.querySelector(
 const searchLoader = document.querySelector(".grid-loader");
 const paginationEl = document.querySelector(".search-results_pagination");
 
-const createCardEl = (data) => `<div class="search-results_card card">
-<img src="${data.image}" />
-<span class="brand">${data.brand}</span>
-                                  <a href="${data.productUrl}">${data.name}</a>
-                                  <span class="price">$${Number(
-                                    data.price
-                                  ).toFixed(2)}</span>
-                                  </div>`;
-
 let lastQuery = "";
-export default async function search(query = lastQuery, updateFilters = false) {
+export default async function search(
+  query = lastQuery,
+  showResults = true,
+  updateFilters = false
+) {
   lastQuery = query;
-  searchResultsContainerEl.replaceChildren(searchLoader, paginationEl);
+  if (showResults)
+    searchResultsContainerEl.replaceChildren(searchLoader, paginationEl);
+
   searchLoader.classList.remove("hidden");
   const URL = `https://api.synerise.com/search/v2/indices/${INDEX}/${
     query ? "query" : "list"
@@ -50,10 +48,9 @@ export default async function search(query = lastQuery, updateFilters = false) {
     });
     if (!res.ok) throw new Error("Something went wrong");
     const data = await res.json();
-    data.data.forEach((el) => {
-      const cardEl = createCardEl(el);
-      paginationEl.insertAdjacentHTML("beforebegin", cardEl);
-    });
+    const items = data.data;
+
+    if (showResults && query) showSearchResults(items);
 
     pagination.lastPage = data.meta.totalPages;
     pagination.updatePageNrs();
