@@ -332,6 +332,12 @@ h1 {
 
     & input {
       width: fit-content;
+      accent-color: #0b68ff;
+      cursor: pointer;
+    }
+
+    & input:indeterminate {
+      accent-color: #ccc;
     }
 
     & .filter-available {

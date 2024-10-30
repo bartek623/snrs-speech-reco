@@ -17,7 +17,8 @@ let lastQuery = "";
 export default async function search(
   query = lastQuery,
   showResults = true,
-  updateFilters = false
+  updateFilters = false,
+  facets = ["brand", "category"]
 ) {
   lastQuery = query;
   if (showResults)
@@ -35,7 +36,7 @@ export default async function search(
     sortBy: sorting.prop,
     ordering: sorting.order,
     filters: filters.filtersQuery,
-    facets: ["brand", "category"],
+    facets: facets,
   };
 
   try {
@@ -56,8 +57,8 @@ export default async function search(
     pagination.updatePageNrs();
     if (updateFilters)
       updateAvailableFilters(
-        Object.entries(data.extras.filteredFacets.brand),
-        Object.entries(data.extras.filteredFacets.category)
+        Object.entries(data.extras.filteredFacets?.brand || []),
+        Object.entries(data.extras.filteredFacets?.category || [])
       );
   } catch (err) {
     console.error(err);

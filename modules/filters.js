@@ -118,10 +118,10 @@ export const updateAvailableFilters = (
   availableBrands,
   availableCategories
 ) => {
-  const brandSelectEl = brandFilterCtrlEl.querySelector("#brand-filter");
-  const categorySelectEl = catFilterCtrlEl.querySelector("#category-filter");
-  brandSelectEl.innerHTML = "";
-  categorySelectEl.innerHTML = "";
+  const brandFiltersEl = brandFilterCtrlEl.querySelector("#brand-filter");
+  const categoryFiltersEl = catFilterCtrlEl.querySelector("#category-filter");
+  if (availableBrands.length) brandFiltersEl.innerHTML = "";
+  if (availableCategories.length) categoryFiltersEl.innerHTML = "";
 
   availableBrands.forEach(([brand, available]) => {
     const brandOptionTemplate = `
@@ -131,15 +131,15 @@ export const updateAvailableFilters = (
         <label for="${brand}">${brand}</label>
         <span class="filter-available">${available}</span>
       </div>
-    </li>`;
-    brandSelectEl.insertAdjacentHTML("beforeend", brandOptionTemplate);
+    </li(>`;
+    brandFiltersEl.insertAdjacentHTML("beforeend", brandOptionTemplate);
   });
 
-  let currentParent = categorySelectEl;
-  availableCategories.sort().forEach(([category, available]) => {
+  let currentParent = categoryFiltersEl;
+  availableCategories.forEach(([category, available]) => {
     const subcategories = category.split(">");
     const categoryName = subcategories.at(-1);
-    const parentCategory = subcategories.at(-2);
+    const parentCategory = subcategories.slice(0, -1).join(">");
 
     currentParent =
       currentParent.closest(`ul[data-category="${parentCategory}"]`) ||
@@ -151,11 +151,14 @@ export const updateAvailableFilters = (
 
     const listItem = document.createElement("li");
     listItem.classList.add("collapsed");
+    listItem.dataset.category = category;
     const childList = document.createElement("ul");
-    childList.dataset.category = categoryName;
+    childList.dataset.category = category;
     const categoryOptionTemplate = `
     <div>
-      <input type="checkbox" id="${category}" value="${category}" />
+      <input type="checkbox" id="${category}" value="${category}" ${
+      filters.category.some((el) => category.includes(el)) ? "checked" : ""
+    } />
       <label for="${category}">${categoryName}</label>
       <span class="filter-available">${available}</span>
       <button class="hidden"><span class="material-symbols-rounded icon"> keyboard_arrow_up </span></button>
@@ -163,6 +166,93 @@ export const updateAvailableFilters = (
     listItem.insertAdjacentHTML("beforeend", categoryOptionTemplate);
     listItem.insertAdjacentElement("beforeend", childList);
 
+    listItem.querySelector("input").addEventListener("change", (e) => {
+      if (e.target.checked) {
+        // check all child categories
+        const childCategoryEls = e.target
+          .closest("li")
+          .querySelectorAll("input");
+        childCategoryEls.forEach((input) => {
+          input.checked = true;
+          const filterIndex = filters.category.indexOf(input.value);
+          if (filterIndex >= 0) filters.category.splice(filterIndex, 1);
+        });
+
+        // push only parent
+        filters.category.push(category);
+
+        // check for parents if all its children are checked
+        subcategories.slice(0, -1).forEach((_, i, categories) => {
+          const levelCategory = categories
+            .slice(0, categories.length - i)
+            .join(">");
+          const levelParent = categoryFiltersEl.querySelector(
+            `li[data-category="${levelCategory}"]`
+          );
+          const levelParentCheckbox = levelParent.querySelector("input");
+
+          if (levelParent.querySelector("ul input:checked")) {
+            levelParentCheckbox.indeterminate = true;
+          } else {
+            levelParentCheckbox.indeterminate = false;
+          }
+
+          if (
+            !levelParent.querySelector(
+              `ul[data-category="${levelCategory}"] input:not(:checked)`
+            )
+          ) {
+            levelParentCheckbox.checked = true;
+            levelParentCheckbox.indeterminate = false;
+            [...filters.category].forEach((filter) => {
+              const filterIndex = filters.category.indexOf(filter);
+              if (
+                levelParent.querySelector(
+                  `li[data-category="${filter}"] > div > input`
+                )
+              )
+                filters.category.splice(filterIndex, 1);
+            });
+            filters.category.push(levelCategory);
+          }
+        });
+      } else {
+        subcategories.forEach((_, i, categories) => {
+          // uncheck parents for each level and remove from filters
+          const levelCategory = categories.slice(0, i + 1).join(">");
+          const levelParent = categoryFiltersEl.querySelector(
+            `li[data-category="${levelCategory}"]`
+          );
+          const levelParentCheckbox = levelParent.querySelector("input");
+
+          const filterIndex = filters.category.indexOf(
+            levelParentCheckbox.value
+          );
+          if (filterIndex >= 0) filters.category.splice(filterIndex, 1);
+          if (!levelParentCheckbox.checked) return;
+          levelParentCheckbox.indeterminate = true;
+          levelParentCheckbox.checked = false;
+
+          // push all siblings category to filters
+          levelParent
+            .querySelectorAll(
+              `ul[data-category="${levelCategory}"] > li > div > input`
+            )
+            .forEach((categoryItem) => {
+              if (categoryItem.value === category) return;
+              filters.category.push(categoryItem.value);
+            });
+        });
+
+        // uncheck all children
+        listItem
+          .querySelectorAll("input")
+          .forEach((input) => (input.checked = false));
+      }
+
+      console.log(filters.category);
+      search(undefined, false, true, ["brands"]);
+    });
     listItem.querySelector("button").addEventListener("click", () => {
       listItem.classList.toggle("collapsed");
     });
@@ -196,5 +286,5 @@ applyFiltersBtn.addEventListener("click", () => {
   pagination.page = 1;
 
   closeModal();
-  search();
+  search(undefined, true, true);
 });
