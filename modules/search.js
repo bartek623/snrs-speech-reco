@@ -1,9 +1,6 @@
-import {
-  pagination,
-  sorting,
-  filters,
-  updateAvailableFilters,
-} from "./filters.js";
+import { sorting } from "./sorting.js";
+import { pagination } from "./pagination.js";
+import { filters, updateAvailableFilters } from "./filters.js";
 import { TOKEN, INDEX } from "../config.js";
 import { showSearchResults } from "./utils.js";
 
