@@ -10,6 +10,7 @@ import { showSearchResults } from "./utils.js";
 const searchResultsContainerEl = document.querySelector(
   ".search-results_container"
 );
+const searchOptionsEl = document.querySelector(".search-opts");
 const searchLoader = document.querySelector(".grid-loader");
 const paginationEl = document.querySelector(".search-results_pagination");
 
@@ -21,8 +22,10 @@ export default async function search(
   facets = ["brand", "category"]
 ) {
   lastQuery = query;
-  if (showResults)
+  if (showResults) {
+    searchOptionsEl.classList.remove("hidden");
     searchResultsContainerEl.replaceChildren(searchLoader, paginationEl);
+  }
 
   searchLoader.classList.remove("hidden");
   const URL = `https://api.synerise.com/search/v2/indices/${INDEX}/${

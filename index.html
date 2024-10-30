@@ -103,7 +103,7 @@
         </div>
       </div>
 
-      <div class="search-opts card mg_top--sm">
+      <div class="search-opts card mg_top--sm hidden">
         <div class="select-ctrl input-ctrl">
           <label for="page-size-select">
             <span>Elements per page</span>
@@ -161,14 +161,20 @@
           class="filter-ctrl input-ctrl filter-brand-ctrl"
           data-attribute="brand"
         >
-          <span>Brand filter</span>
+          <div class="filter-header">
+            <span>Brand filter</span>
+            <button class="clear-filter-btn">clear filters</button>
+          </div>
           <ul id="brand-filter" class="filter-list"></ul>
         </div>
         <div
           class="filter-ctrl input-ctrl filter-category-ctrl"
           data-attribute="category"
         >
-          <span>Category filter</span>
+          <div class="filter-header">
+            <span>Category filter</span>
+            <button class="clear-filter-btn">clear filters</button>
+          </div>
           <ul id="category-filter" class="filter-list"></ul>
         </div>
         <div class="filter-ctrl filter-price-ctrl">

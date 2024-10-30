@@ -294,6 +294,45 @@ h1 {
   flex-direction: column;
   padding: 0 2rem;
 
+  & .filter-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    & .clear-filter-btn {
+      position: relative;
+      border: none;
+      background: none;
+      color: #0b68ff;
+      font-size: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+
+      transition: all 0.2s;
+    }
+
+    & .clear-filter-btn::after {
+      position: absolute;
+      left: 50%;
+      bottom: -3px;
+      transform: translateX(-50%);
+      height: 1px;
+      width: 0;
+      content: "";
+      background-color: #2760bb;
+      transition: all 0.2s;
+    }
+
+    & .clear-filter-btn:hover {
+      cursor: pointer;
+      color: #2760bb;
+    }
+
+    & .clear-filter-btn:hover::after {
+      width: 100%;
+    }
+  }
+
   & .filter-list {
     max-height: 16rem;
     padding: 4px 0;

@@ -6,13 +6,6 @@ const filtersModalOverlayEl = document.querySelector(".modal-overlay");
 const filtersModalEl = document.querySelector(".filters-modal");
 const filtersCloseBtn = filtersModalEl.querySelector(".modal-close-btn");
 
-const pageSizeSelectEl = document.getElementById("page-size-select");
-const firstPageBtn = document.querySelector(".pagination-first-arrow");
-const prevPageBtn = document.querySelector(".pagination-prev");
-const currPageBtn = document.querySelector(".pagination-current");
-const nextPageBtn = document.querySelector(".pagination-next");
-const lastPageBtn = document.querySelector(".pagination-last-arrow");
-
 const sortSelectEl = document.getElementById("sorting-select");
 const sortOrderBtn = document.querySelector(".sort-box button");
 
@@ -21,6 +14,11 @@ const catFilterCtrlEl = filtersModalEl.querySelector(".filter-category-ctrl");
 const priceMinInputEl = filtersModalEl.querySelector("#price-min-filter");
 const priceMaxInputEl = filtersModalEl.querySelector("#price-max-filter");
 const applyFiltersBtn = filtersModalEl.querySelector(".apply-filters-btn");
+
+const clearBrandFilterBtn =
+  brandFilterCtrlEl.querySelector(".clear-filter-btn");
+const clearCategoryFilterBtn =
+  catFilterCtrlEl.querySelector(".clear-filter-btn");
 
 export const pagination = {
   limit: 10,
@@ -127,7 +125,9 @@ export const updateAvailableFilters = (
     const brandOptionTemplate = `
     <li>
       <div>
-        <input type="checkbox" id="${brand}" value="${brand}" />
+        <input type="checkbox" id="${brand}" value="${brand}" ${
+      filters.brand.includes(brand) ? "checked" : ""
+    } />
         <label for="${brand}">${brand}</label>
         <span class="filter-available">${available}</span>
       </div>
@@ -250,8 +250,7 @@ export const updateAvailableFilters = (
           .forEach((input) => (input.checked = false));
       }
 
-      console.log(filters.category);
-      search(undefined, false, true, ["brands"]);
+      search(undefined, false, true, ["brand"]);
     });
     listItem.querySelector("button").addEventListener("click", () => {
       listItem.classList.toggle("collapsed");
@@ -261,6 +260,15 @@ export const updateAvailableFilters = (
     currentParent = childList;
   });
 };
+
+clearBrandFilterBtn.addEventListener("click", () => {
+  filters.brand.splice(0, filters.brand.length);
+  search(undefined, false, true);
+});
+clearCategoryFilterBtn.addEventListener("click", () => {
+  filters.category.splice(0, filters.category.length);
+  search(undefined, false, true);
+});
 
 priceMinInputEl.addEventListener("change", (e) => {
   if (+e.target.value > +priceMaxInputEl.value)
