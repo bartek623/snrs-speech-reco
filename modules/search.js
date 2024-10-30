@@ -1,15 +1,13 @@
-import {
-  pagination,
-  sorting,
-  filters,
-  updateAvailableFilters,
-} from "./filters.js";
+import { sorting } from "./sorting.js";
+import { pagination } from "./pagination.js";
+import { filters, updateAvailableFilters } from "./filters.js";
 import { TOKEN, INDEX } from "../config.js";
 import { showSearchResults } from "./utils.js";
 
 const searchResultsContainerEl = document.querySelector(
   ".search-results_container"
 );
+const searchOptionsEl = document.querySelector(".search-opts");
 const searchLoader = document.querySelector(".grid-loader");
 const paginationEl = document.querySelector(".search-results_pagination");
 
@@ -17,11 +15,14 @@ let lastQuery = "";
 export default async function search(
   query = lastQuery,
   showResults = true,
-  updateFilters = false
+  updateFilters = false,
+  facets = ["brand", "category"]
 ) {
   lastQuery = query;
-  if (showResults)
+  if (showResults) {
+    searchOptionsEl.classList.remove("hidden");
     searchResultsContainerEl.replaceChildren(searchLoader, paginationEl);
+  }
 
   searchLoader.classList.remove("hidden");
   const URL = `https://api.synerise.com/search/v2/indices/${INDEX}/${
@@ -35,7 +36,7 @@ export default async function search(
     sortBy: sorting.prop,
     ordering: sorting.order,
     filters: filters.filtersQuery,
-    facets: ["brand", "category"],
+    facets: facets,
   };
 
   try {
@@ -56,8 +57,8 @@ export default async function search(
     pagination.updatePageNrs();
     if (updateFilters)
       updateAvailableFilters(
-        Object.entries(data.extras.filteredFacets.brand),
-        Object.entries(data.extras.filteredFacets.category)
+        Object.entries(data.extras.filteredFacets?.brand || []),
+        Object.entries(data.extras.filteredFacets?.category || [])
       );
   } catch (err) {
     console.error(err);
