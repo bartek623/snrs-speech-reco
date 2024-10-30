@@ -294,12 +294,17 @@ h1 {
   flex-direction: column;
   padding: 0 2rem;
 
+  &:has(input:checked) .clear-filter-btn {
+    display: block;
+  }
+
   & .filter-header {
     display: flex;
     align-items: center;
     gap: 6px;
 
     & .clear-filter-btn {
+      display: none;
       position: relative;
       border: none;
       background: none;
