@@ -25,6 +25,7 @@ export default async function search(
   }
 
   searchLoader.classList.remove("hidden");
+  const loaderPromise = new Promise((resolve) => setTimeout(resolve, 500));
   const URL = `https://api.synerise.com/search/v2/indices/${INDEX}/${
     query ? "query" : "list"
   }?token=${TOKEN}`;
@@ -64,5 +65,6 @@ export default async function search(
     console.error(err);
   }
 
+  await loaderPromise;
   searchLoader.classList.add("hidden");
 }

@@ -83,7 +83,10 @@ const addBrandFilter =
   };
 
 const getCategoryContent = (category, available) => {
-  const categoryName = category.split(">").at(-1);
+  const subcategories = category.split(">");
+  const categoryName = subcategories.at(-1).includes("default")
+    ? "All"
+    : subcategories.at(-1);
   const isChecked = filters.category.some((el) => category.includes(el));
   return `<div>
             <input type="checkbox" id="${category}" value="${category}"
@@ -121,8 +124,10 @@ const addCategoryHandler = (parent, category, listItem) => {
   filters.category.push(category);
 
   // check for parents if all its children are checked
-  subcategories.slice(0, -1).forEach((_, i, categories) => {
-    const levelCategory = categories.slice(0, categories.length - i).join(">");
+  subcategories.slice(1, -1).forEach((_, i) => {
+    const levelCategory = subcategories
+      .slice(0, subcategories.length - i - 1)
+      .join(">");
     const levelParent = parent.querySelector(
       `li[data-category="${levelCategory}"]`
     );
@@ -154,9 +159,9 @@ const addCategoryHandler = (parent, category, listItem) => {
 
 const removeCategoryHandler = (parent, category, listItem) => {
   const subcategories = category.split(">");
-  subcategories.forEach((_, i, categories) => {
+  subcategories.slice(1).forEach((_, i) => {
     // uncheck parents for each level and remove from filters
-    const levelCategory = categories.slice(0, i + 1).join(">");
+    const levelCategory = subcategories.slice(0, i + 2).join(">");
     const levelParent = parent.querySelector(
       `li[data-category="${levelCategory}"]`
     );
@@ -234,7 +239,7 @@ export const updateAvailableFilters = (
   if (availableCategories.length) categoryFiltersEl.innerHTML = "";
 
   availableBrands.forEach(addBrandFilter(brandFiltersEl));
-  availableCategories.forEach(addCategoryFilter(categoryFiltersEl));
+  availableCategories.slice(1).forEach(addCategoryFilter(categoryFiltersEl));
 };
 
 clearBrandFilterBtn.addEventListener("click", () => {
