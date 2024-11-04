@@ -516,7 +516,7 @@ h1 {
   width: 100%;
   height: 100%;
 
-  animation: loader 2s ease-in-out infinite;
+  animation: loader 0.5s ease-in-out infinite;
 }
 
 @keyframes loader {
